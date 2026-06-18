@@ -1,0 +1,830 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Missing Semester</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080810;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    #pres-root {
+      font-family: 'Inter', sans-serif;
+      background: #080810;
+      color: #fff;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 48px 48px 80px 48px;
+      text-align: center;
+    }
+    .slide.active { display: flex; }
+
+    .slide-num {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 2px;
+      font-weight: 400;
+    }
+
+    .nav-btn {
+      position: absolute;
+      bottom: 24px;
+      background: rgba(255,255,255,0.06);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      z-index: 100;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .nav-btn:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+      background: rgba(255,255,255,0.02);
+      border-color: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.2);
+    }
+    .nav-btn svg { display: block; }
+    #btn-prev { left: 50%; transform: translateX(-52px); }
+    #btn-next { left: 50%; transform: translateX(8px); }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      transition: width 0.4s ease;
+      z-index: 99;
+    }
+
+  /* Typography scale */
+  .t-hero { font-size: 62px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+  .t-huge { font-size: 48px; font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; }
+  .t-big { font-size: 34px; font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; }
+  .t-med { font-size: 22px; font-weight: 400; line-height: 1.5; }
+  .t-sub { font-size: 18px; font-weight: 300; color: rgba(255,255,255,0.5); }
+  .t-label { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.3); }
+
+  /* Text-only focus slides typography */
+  .slide.text-only .t-hero { font-size: 80px; line-height: 1.05; letter-spacing: -2.5px; }
+  .slide.text-only .t-huge { font-size: 64px; line-height: 1.1; letter-spacing: -2px; }
+  .slide.text-only .t-big { font-size: 48px; line-height: 1.2; letter-spacing: -1px; }
+  .slide.text-only .t-med { font-size: 28px; line-height: 1.5; }
+  .slide.text-only .t-sub { font-size: 24px; color: rgba(255,255,255,0.6); }
+  .slide.text-only .t-label { font-size: 15px; letter-spacing: 4px; color: rgba(255,255,255,0.4); }
+
+  .accent { color: #818cf8; }
+  .accent2 { color: #a855f7; }
+  .dim { color: rgba(255,255,255,0.4); }
+  .highlight { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  .pill {
+    display: inline-block;
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    padding: 5px 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin: 4px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; width: 100%; }
+
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: left;
+  }
+
+  .card-accent {
+    background: rgba(99,102,241,0.08);
+    border: 0.5px solid rgba(99,102,241,0.25);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: left;
+  }
+
+  .arrow-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .flow-item {
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 32px;
+    font-size: 16px;
+    font-weight: 500;
+    width: 200px;
+    text-align: center;
+  }
+  .flow-arrow { color: rgba(255,255,255,0.2); font-size: 20px; line-height: 1; }
+
+  .meme-box {
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 32px 40px;
+    max-width: 440px;
+    text-align: left;
+  }
+  .bubble {
+    background: rgba(99,102,241,0.12);
+    border: 0.5px solid rgba(99,102,241,0.3);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 16px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .bubble .who { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #818cf8; margin-bottom: 6px; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; }
+  .split-card {
+    background: rgba(255,255,255,0.03);
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 28px;
+    text-align: left;
+  }
+
+  .localhost-line { 
+    font-family: 'Courier New', monospace; 
+    font-size: 18px; 
+    color: rgba(255,255,255,0.3);
+    margin: 4px 0;
+  }
+  .localhost-dead { 
+    font-family: 'Courier New', monospace; 
+    font-size: 18px; 
+    color: rgba(255,80,80,0.5);
+    text-decoration: line-through;
+  }
+
+  .big-vs {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    width: 100%;
+    justify-content: center;
+  }
+  .vs-label {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 8px;
+  }
+  .vs-sep {
+    font-size: 22px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.15);
+    flex-shrink: 0;
+  }
+
+  .tag { 
+    display: inline-block; 
+    background: rgba(255,255,255,0.05); 
+    border: 0.5px solid rgba(255,255,255,0.1); 
+    border-radius: 6px; 
+    padding: 6px 14px; 
+    font-size: 14px; 
+    margin: 4px;
+    font-family: 'Courier New', monospace;
+  }
+  .tag-blue { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3); color: #a5b4fc; }
+  .tag-green { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.25); color: #6ee7b7; }
+  .tag-red { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.25); color: #fca5a5; }
+
+  .bridge-visual { width: 100%; padding: 0 8px; }
+
+  .comic-row { display: flex; gap: 16px; width: 100%; align-items: flex-start; }
+  .comic-box { flex: 1; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
+  .comic-speaker { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
+  .comic-text { font-size: 15px; font-weight: 500; }
+
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .glow-dot {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0.25;
+  }
+
+  .convergence { display: flex; flex-direction: column; align-items: center; width: 100%; }
+  .conv-top { display: flex; gap: 24px; justify-content: center; margin-bottom: 0; }
+  .conv-item { 
+    background: rgba(255,255,255,0.04); 
+    border: 0.5px solid rgba(255,255,255,0.1); 
+    border-radius: 8px; 
+    padding: 10px 18px; 
+    font-size: 14px; 
+    font-weight: 500; 
+    text-align: center;
+  }
+  .conv-lines { height: 40px; position: relative; width: 280px; }
+  .conv-bottom {
+    background: rgba(99,102,241,0.12);
+    border: 0.5px solid rgba(99,102,241,0.4);
+    border-radius: 8px;
+    padding: 14px 40px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #a5b4fc;
+  }
+
+  .uni-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+  .uni-col-head { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+  .uni-item { 
+    display: flex; align-items: center; gap: 10px; 
+    padding: 9px 12px; 
+    background: rgba(255,255,255,0.03); 
+    border-radius: 7px; 
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .uni-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .journey-flow { display: flex; flex-direction: column; align-items: center; width: 100%; }
+  .journey-item { 
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px 24px;
+    width: 260px;
+    margin: 4px 0;
+  }
+  .journey-dot { width: 8px; height: 8px; border-radius: 50%; background: #6366f1; }
+  .journey-arrow-line { width: 2px; height: 20px; background: rgba(99,102,241,0.3); margin: 0 auto; }
+  .journey-active {
+    background: rgba(99,102,241,0.1);
+    border-color: rgba(99,102,241,0.4);
+  }
+  .journey-dot-active { background: #a855f7; box-shadow: 0 0 8px rgba(168,85,247,0.5); }
+
+</style>
+</head>
+<body>
+<div id="pres-root">
+  <div class="progress-bar" id="progress-bar"></div>
+
+  <!-- SLIDE 1: Opening -->
+  <div class="slide active" id="s1">
+    <div class="glow-dot" style="width:300px;height:300px;background:#6366f1;top:-80px;left:-60px;"></div>
+    <div class="glow-dot" style="width:200px;height:200px;background:#a855f7;bottom:-40px;right:-40px;"></div>
+    <div class="bg-grid"></div>
+    <p class="t-label" style="margin-bottom:24px;">A talk for CSE students</p>
+    <h1 class="t-hero highlight" style="margin-bottom:20px;">The Missing Semester</h1>
+    <p class="t-med dim" style="max-width:440px;">The things nobody explicitly teaches you</p>
+    <div style="margin-top:40px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <span class="pill">Software Engineering</span>
+      <span class="pill">Systems Thinking</span>
+      <span class="pill">Real World</span>
+    </div>
+    <div class="slide-num">01 / 26</div>
+  </div>
+
+  <!-- SLIDE 2: How many built a website -->
+  <div class="slide text-only" id="s2">
+    <div class="glow-dot" style="width:250px;height:250px;background:#6366f1;top:-60px;right:-40px;opacity:0.15;"></div>
+    <p class="t-label" style="margin-bottom:40px;">raise your hand</p>
+    <h2 class="t-hero" style="max-width:600px;">How many of you have built a website?</h2>
+    <div class="slide-num">02 / 26</div>
+  </div>
+
+  <!-- SLIDE 3: How many deployed -->
+  <div class="slide text-only" id="s3">
+    <div class="glow-dot" style="width:250px;height:250px;background:#a855f7;bottom:-80px;left:-40px;opacity:0.15;"></div>
+    <p class="t-label" style="margin-bottom:40px;">now keep it raised...</p>
+    <h2 class="t-hero" style="max-width:600px;">How many of you have <span class="accent2">deployed</span> one?</h2>
+    <p class="t-sub" style="margin-top:28px;">...thought so.</p>
+    <div class="slide-num">03 / 26</div>
+  </div>
+
+  <!-- SLIDE 4: Meme -->
+  <div class="slide" id="s4">
+    <div class="bg-grid" style="opacity:0.5;"></div>
+    <div class="meme-box">
+      <div class="bubble">
+        <div class="who">Friend</div>
+        "bro I built 3 websites today with AI 🔥"
+      </div>
+      <div style="margin-left:16px;">
+        <div class="localhost-line">localhost:3000</div>
+        <div class="localhost-line">localhost:3001</div>
+        <div class="localhost-line">localhost:3002</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:14px;">nobody can visit any of them</p>
+    <div class="slide-num">04 / 26</div>
+  </div>
+
+  <!-- SLIDE 5: Writing code ≠ Building software -->
+  <div class="slide text-only" id="s5">
+    <div class="glow-dot" style="width:350px;height:350px;background:#6366f1;top:-100px;left:50%;transform:translateX(-50%);opacity:0.18;"></div>
+    <h2 class="t-hero" style="max-width:680px;">Writing code<br/><span class="dim">≠</span><br/><span class="highlight">Building software</span></h2>
+    <div class="slide-num">05 / 26</div>
+  </div>
+
+  <!-- SLIDE 6: Developer vs Engineer (formerly 19) -->
+  <div class="slide" id="s6">
+    <p class="t-label" style="margin-bottom:24px;">two different mindsets</p>
+    <div class="split" style="max-width:580px;">
+      <div class="split-card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:12px;">Developer</div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:12px;color:rgba(255,255,255,0.8);">"What framework should we use?"</div>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="tag">React</span>
+          <span class="tag">Vue</span>
+          <span class="tag">Angular</span>
+        </div>
+      </div>
+      <div class="split-card" style="background:rgba(99,102,241,0.06);border-color:rgba(99,102,241,0.2);">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#818cf8;margin-bottom:12px;">Engineer</div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:12px;color:#e0e7ff;">"What problem are we solving?"</div>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="tag tag-blue">Users?</span>
+          <span class="tag tag-blue">Scale?</span>
+          <span class="tag tag-blue">Budget?</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">19 / 26</div>
+  </div>
+
+  <!-- SLIDE 7: Uber scenario (formerly 20) -->
+  <div class="slide" id="s7">
+    <p class="t-label" style="margin-bottom:24px;">real conversation</p>
+    <div style="max-width:560px;width:100%;">
+      <div class="comic-row" style="margin-bottom:16px;">
+        <div class="comic-box" style="flex:0 0 100px;text-align:center;display:flex;align-items:center;justify-content:center;">
+          <div>
+            <div style="font-size:32px;">🧑‍💼</div>
+            <div class="comic-speaker">Client</div>
+          </div>
+        </div>
+        <div class="comic-box" style="flex:1;">
+          <div class="comic-text">"Build me an Uber."</div>
+        </div>
+      </div>
+      <div class="comic-row" style="gap:0;">
+        <div class="comic-box" style="flex:1;text-align:center;border-color:rgba(255,255,255,0.06);">
+          <div class="comic-speaker" style="color:rgba(255,255,255,0.25);">Developer</div>
+          <div class="comic-text" style="color:rgba(255,255,255,0.6);">"What language should I use?"</div>
+          <div style="margin-top:12px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+            <span class="tag">Python?</span>
+            <span class="tag">Java?</span>
+          </div>
+        </div>
+        <div style="width:16px;"></div>
+        <div class="comic-box" style="flex:1;text-align:center;background:rgba(99,102,241,0.06);border-color:rgba(99,102,241,0.2);">
+          <div class="comic-speaker" style="color:#818cf8;">Engineer</div>
+          <div class="comic-text">"How many concurrent users?"</div>
+          <div style="margin-top:12px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+            <span class="tag tag-blue">1K?</span>
+            <span class="tag tag-blue">1M?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">20 / 26</div>
+  </div>
+
+  <!-- SLIDE 8: Developers think in technologies (formerly 21) -->
+  <div class="slide" id="s8">
+    <div class="glow-dot" style="width:300px;height:300px;background:#f59e0b;top:50%;left:30%;transform:translate(-50%,-50%);opacity:0.08;"></div>
+    <p class="t-label" style="margin-bottom:36px;">mindset #1</p>
+    <h2 style="font-size:44px;font-weight:700;letter-spacing:-1px;max-width:540px;color:rgba(255,255,255,0.7);">
+      Developers think in<br/><span style="color:#fbbf24;">technologies.</span>
+    </h2>
+    <div style="margin-top:28px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <span class="tag">React</span>
+      <span class="tag">Spring Boot</span>
+      <span class="tag">MongoDB</span>
+      <span class="tag">Flutter</span>
+      <span class="tag">GraphQL</span>
+    </div>
+    <div class="slide-num">21 / 26</div>
+  </div>
+
+  <!-- SLIDE 9: Engineers think in systems (formerly 22) -->
+  <div class="slide" id="s9">
+    <div class="glow-dot" style="width:300px;height:300px;background:#6366f1;top:50%;left:70%;transform:translate(-50%,-50%);opacity:0.12;"></div>
+    <p class="t-label" style="margin-bottom:36px;">mindset #2</p>
+    <h2 style="font-size:44px;font-weight:700;letter-spacing:-1px;max-width:540px;">
+      Engineers think in<br/><span class="highlight">systems.</span>
+    </h2>
+    <div style="margin-top:28px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <span class="tag tag-blue">Scale</span>
+      <span class="tag tag-blue">Reliability</span>
+      <span class="tag tag-blue">Latency</span>
+      <span class="tag tag-blue">Cost</span>
+      <span class="tag tag-blue">Tradeoffs</span>
+    </div>
+    <div class="slide-num">22 / 26</div>
+  </div>
+
+  <!-- SLIDE 10: What happens when you open Facebook (formerly 6) -->
+  <div class="slide text-only" id="s10">
+    <p class="t-label" style="margin-bottom:40px;">think about it</p>
+    <h2 class="t-huge" style="max-width:640px;">What actually happens when you open <span class="accent">Facebook</span>?</h2>
+    <div class="slide-num">06 / 26</div>
+  </div>
+
+  <!-- SLIDE 11: System Architecture (formerly 7) -->
+  <div class="slide" id="s11">
+    <p class="t-label" style="margin-bottom:28px;">every app, ever</p>
+    <div style="display:flex;gap:40px;align-items:center;justify-content:center;width:100%;">
+      <div class="arrow-flow">
+        <div class="flow-item" style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.3);">User</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item">Frontend</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item">Backend</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item">Database</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item">Server</div>
+      </div>
+      <div style="text-align:left;max-width:200px;">
+        <div style="margin-bottom:18px;">
+          <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:4px;">Sees</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.7);">Buttons, pages, data</div>
+        </div>
+        <div style="margin-bottom:18px;">
+          <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:4px;">Logic</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.7);">Rules & processing</div>
+        </div>
+        <div>
+          <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:4px;">Stores</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.7);">All your data</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">07 / 26</div>
+  </div>
+
+  <!-- SLIDE 12: Frontend (formerly 8) -->
+  <div class="slide" id="s12">
+    <div class="glow-dot" style="width:200px;height:200px;background:#818cf8;top:-40px;right:40px;opacity:0.15;"></div>
+    <p class="t-label" style="margin-bottom:16px;">frontend</p>
+    <h2 class="t-huge" style="margin-bottom:32px;">What users <span class="accent">see</span></h2>
+    <div class="grid-3" style="max-width:560px;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">🔘</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Buttons</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">📋</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Forms</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">📱</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Feeds</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:14px;">HTML · CSS · JavaScript · React · Flutter</p>
+    <div class="slide-num">08 / 26</div>
+  </div>
+
+  <!-- SLIDE 13: Backend (formerly 9) -->
+  <div class="slide" id="s13">
+    <div class="glow-dot" style="width:200px;height:200px;background:#a855f7;bottom:-40px;left:40px;opacity:0.15;"></div>
+    <p class="t-label" style="margin-bottom:16px;">backend</p>
+    <h2 class="t-huge" style="margin-bottom:32px;">What users <span class="accent2">never see</span></h2>
+    <div class="grid-2" style="max-width:540px;">
+      <div class="card">
+        <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">Request comes in</div>
+        <div style="font-family:'Courier New',monospace;font-size:13px;color:#a5b4fc;">GET /api/feed</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">Logic runs</div>
+        <div style="font-size:14px;">Auth → Query → Filter → Respond</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">Rules enforced</div>
+        <div style="font-size:14px;">Who can see what?</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">Response sent</div>
+        <div style="font-family:'Courier New',monospace;font-size:13px;color:#6ee7b7;">200 OK { data }</div>
+      </div>
+    </div>
+    <div class="slide-num">09 / 26</div>
+  </div>
+
+  <!-- SLIDE 14: Database (formerly 10) -->
+  <div class="slide" id="s14">
+    <p class="t-label" style="margin-bottom:16px;">database</p>
+    <h2 class="t-huge" style="margin-bottom:32px;">The <span class="highlight">memory</span> of your app</h2>
+    <div style="display:flex;gap:20px;justify-content:center;align-items:center;flex-wrap:wrap;">
+      <div class="card" style="text-align:center;min-width:120px;">
+        <div style="font-size:32px;margin-bottom:8px;">🧠</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Every post</div>
+      </div>
+      <div class="card" style="text-align:center;min-width:120px;">
+        <div style="font-size:32px;margin-bottom:8px;">👤</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Every user</div>
+      </div>
+      <div class="card" style="text-align:center;min-width:120px;">
+        <div style="font-size:32px;margin-bottom:8px;">❤️</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Every like</div>
+      </div>
+      <div class="card" style="text-align:center;min-width:120px;">
+        <div style="font-size:32px;margin-bottom:8px;">💬</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Every message</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:14px;">Turn off the server — it survives. That's the point.</p>
+    <div class="slide-num">10 / 26</div>
+  </div>
+
+  <!-- SLIDE 15: Same Backend (formerly 11) -->
+  <div class="slide" id="s15">
+    <p class="t-label" style="margin-bottom:24px;">mind = blown</p>
+    <div class="convergence" style="width: 480px; margin: 0 auto;">
+      <div class="conv-top" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; width: 100%;">
+        <div class="conv-item" style="padding: 10px 0; text-align: center;">📱 Facebook App</div>
+        <div class="conv-item" style="padding: 10px 0; text-align: center;">📸 Instagram App</div>
+        <div class="conv-item" style="padding: 10px 0; text-align: center;">💻 Website</div>
+      </div>
+      <svg width="480" height="48" viewBox="0 0 480 48" style="display: block; margin: 0 auto;">
+        <line x1="72" y1="4" x2="240" y2="44" stroke="rgba(99,102,241,0.4)" stroke-width="1.5"/>
+        <line x1="240" y1="4" x2="240" y2="44" stroke="rgba(99,102,241,0.4)" stroke-width="1.5"/>
+        <line x1="408" y1="4" x2="240" y2="44" stroke="rgba(99,102,241,0.4)" stroke-width="1.5"/>
+      </svg>
+      <div class="conv-bottom" style="width: 240px; text-align: center; margin: 0 auto;">Same Backend API</div>
+    </div>
+    <p class="t-sub" style="margin-top:20px;font-size:14px;">One backend. Many clients. Always.</p>
+    <div class="slide-num">11 / 26</div>
+  </div>
+
+  <!-- SLIDE 16: Close your laptop? (formerly 12) -->
+  <div class="slide text-only" id="s16">
+    <div class="glow-dot" style="width:300px;height:300px;background:#6366f1;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.08;"></div>
+    <p class="t-label" style="margin-bottom:40px;">question for you</p>
+    <h2 class="t-huge" style="max-width:600px;">What happens when you close your laptop?</h2>
+    <div class="slide-num">12 / 26</div>
+  </div>
+
+  <!-- SLIDE 17: Everything dies (formerly 13) -->
+  <div class="slide text-only" id="s17">
+    <div class="glow-dot" style="width:350px;height:350px;background:#ef4444;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.08;"></div>
+    <h2 class="t-hero" style="color:rgba(255,255,255,0.9);margin-bottom:8px;">Everything</h2>
+    <h2 class="t-hero" style="color:#f87171;margin-bottom:28px;">dies.</h2>
+    <p class="t-sub">Your app. Your server. All connections.</p>
+    <div class="slide-num">13 / 26</div>
+  </div>
+
+  <!-- SLIDE 18: Server concept (formerly 14) -->
+  <div class="slide" id="s18">
+    <p class="t-label" style="margin-bottom:28px;">the solution is obvious</p>
+    <div class="big-vs">
+      <div style="text-align:center;">
+        <div class="vs-label">your laptop</div>
+        <div style="font-size:56px;margin:8px 0;">💻</div>
+        <div class="card" style="text-align:center;margin-top:8px;">
+          <div class="localhost-dead">localhost:3000</div>
+          <div style="font-size:12px;color:rgba(255,80,80,0.5);margin-top:4px;">dies when you sleep</div>
+        </div>
+      </div>
+      <div class="vs-sep">vs</div>
+      <div style="text-align:center;">
+        <div class="vs-label" style="color:#6ee7b7;">a server</div>
+        <div style="font-size:56px;margin:8px 0;">🖥️</div>
+        <div class="card-accent" style="text-align:center;margin-top:8px;">
+          <div style="font-size:14px;color:#a5b4fc;font-family:'Courier New',monospace;">24 / 7 / 365</div>
+          <div style="font-size:12px;color:rgba(165,180,252,0.6);margin-top:4px;">always on, always ready</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">14 / 26</div>
+  </div>
+
+  <!-- SLIDE 19: VPS (formerly 15) -->
+  <div class="slide" id="s19">
+    <div class="glow-dot" style="width:250px;height:250px;background:#6366f1;top:-60px;left:-40px;opacity:0.15;"></div>
+    <p class="t-label" style="margin-bottom:24px;">VPS · Cloud · Hosting</p>
+    <h2 class="t-big" style="margin-bottom:16px;max-width:500px;">Rent a computer on the internet.</h2>
+    <p class="t-sub" style="margin-bottom:32px;font-size:16px;">You don't need to own a data center.</p>
+    <div class="grid-3" style="max-width:500px;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">☁️</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">AWS</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">🌊</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">DigitalOcean</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">🛸</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Hetzner</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:20px;font-size:13px;">$5/month. Seriously.</p>
+    <div class="slide-num">15 / 26</div>
+  </div>
+
+  <!-- SLIDE 20: Deployment Journey (formerly 16) -->
+  <div class="slide" id="s20">
+    <p class="t-label" style="margin-bottom:24px;">the journey</p>
+    <div class="journey-flow">
+      <div class="journey-item" style="background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.06);">
+        <div class="journey-dot" style="background:rgba(255,255,255,0.2);"></div>
+        <div style="font-family:'Courier New',monospace;font-size:15px;color:rgba(255,255,255,0.4);">localhost:3000</div>
+      </div>
+      <div class="journey-arrow-line"></div>
+      <div class="journey-item">
+        <div class="journey-dot"></div>
+        <div style="font-size:15px;">IP Address · <span style="color:rgba(255,255,255,0.4);font-family:'Courier New',monospace;">192.168.x.x</span></div>
+      </div>
+      <div class="journey-arrow-line"></div>
+      <div class="journey-item">
+        <div class="journey-dot"></div>
+        <div style="font-size:15px;">Domain Name · <span style="color:rgba(255,255,255,0.4);font-family:'Courier New',monospace;">yourapp.com</span></div>
+      </div>
+      <div class="journey-arrow-line"></div>
+      <div class="journey-item journey-active">
+        <div class="journey-dot journey-dot-active"></div>
+        <div style="font-size:15px;font-weight:600;color:#c4b5fd;">Real Users</div>
+      </div>
+    </div>
+    <div class="slide-num">16 / 26</div>
+  </div>
+
+  <!-- SLIDE 21: Real software starts here (formerly 18) -->
+  <div class="slide" id="s21">
+    <div class="glow-dot" style="width:300px;height:300px;background:#6366f1;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.12;"></div>
+    <p class="t-label" style="margin-bottom:32px;">the real game</p>
+    <div class="card-accent" style="max-width:480px;">
+      <div style="font-family:'Courier New',monospace;font-size:20px;color:#a5b4fc;margin-bottom:16px;">yourapp.com</div>
+      <h2 class="t-big" style="color:#fff;">Real software<br/>starts <span class="highlight">right here.</span></h2>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:14px;">Deployment · Monitoring · Scaling · Security</p>
+    <div class="slide-num">18 / 26</div>
+  </div>
+
+  <!-- SLIDE 22: University vs Industry (formerly 23) -->
+  <div class="slide" id="s22">
+    <p class="t-label" style="margin-bottom:20px;">the gap nobody talks about</p>
+    <div class="uni-vs" style="max-width:560px;">
+      <div class="split-card">
+        <div class="uni-col-head" style="color:rgba(255,255,255,0.25);">University teaches</div>
+        <div class="uni-item"><div class="uni-dot" style="background:rgba(255,255,255,0.2);"></div>Algorithms</div>
+        <div class="uni-item"><div class="uni-dot" style="background:rgba(255,255,255,0.2);"></div>Operating Systems</div>
+        <div class="uni-item"><div class="uni-dot" style="background:rgba(255,255,255,0.2);"></div>DBMS</div>
+        <div class="uni-item"><div class="uni-dot" style="background:rgba(255,255,255,0.2);"></div>Networking</div>
+        <div class="uni-item"><div class="uni-dot" style="background:rgba(255,255,255,0.2);"></div>Data Structures</div>
+      </div>
+      <div class="split-card" style="background:rgba(99,102,241,0.05);border-color:rgba(99,102,241,0.2);">
+        <div class="uni-col-head" style="color:#818cf8;">Industry needs</div>
+        <div class="uni-item"><div class="uni-dot" style="background:#6366f1;"></div>Git & Version Control</div>
+        <div class="uni-item"><div class="uni-dot" style="background:#6366f1;"></div>Linux & Terminal</div>
+        <div class="uni-item"><div class="uni-dot" style="background:#6366f1;"></div>Deployment</div>
+        <div class="uni-item"><div class="uni-dot" style="background:#6366f1;"></div>Cloud & DevOps</div>
+        <div class="uni-item"><div class="uni-dot" style="background:#6366f1;"></div>Debugging Production</div>
+      </div>
+    </div>
+    <div class="slide-num">23 / 26</div>
+  </div>
+
+  <!-- SLIDE 23: The Bridge (formerly 24) -->
+  <div class="slide" id="s23">
+    <p class="t-label" style="margin-bottom:28px;">bridging the gap</p>
+    <svg width="520" height="200" viewBox="0 0 520 200" style="max-width:100%;">
+      <rect x="20" y="60" width="140" height="56" rx="10" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+      <text x="90" y="89" fill="rgba(255,255,255,0.8)" font-size="14" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">Computer</text>
+      <text x="90" y="108" fill="rgba(255,255,255,0.8)" font-size="14" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">Science</text>
+      <rect x="360" y="60" width="140" height="56" rx="10" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.35)" stroke-width="0.5"/>
+      <text x="430" y="89" fill="#a5b4fc" font-size="14" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">Software</text>
+      <text x="430" y="108" fill="#a5b4fc" font-size="14" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">Engineering</text>
+      <path d="M160,88 C200,88 220,150 260,150 C300,150 320,88 360,88" fill="none" stroke="rgba(99,102,241,0.5)" stroke-width="2" stroke-dasharray="5,4"/>
+      <ellipse cx="260" cy="150" rx="60" ry="20" fill="rgba(99,102,241,0.08)" stroke="rgba(99,102,241,0.25)" stroke-width="0.5"/>
+      <text x="260" y="155" fill="#818cf8" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">The Missing Semester</text>
+    </svg>
+    <p class="t-sub" style="font-size:14px;">This bridge doesn't build itself.</p>
+    <div class="slide-num">24 / 26</div>
+  </div>
+
+  <!-- SLIDE 24: Not React or Docker (formerly 25) -->
+  <div class="slide text-only" id="s24">
+    <div class="glow-dot" style="width:350px;height:350px;background:#6366f1;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.08;"></div>
+    <p class="t-label" style="margin-bottom:32px;">so what's the goal?</p>
+    <h2 class="t-big" style="max-width:600px;color:rgba(255,255,255,0.5);line-height:1.4;">
+      The goal is not to learn<br/>
+      <span style="color:rgba(255,255,255,0.25);">React · Spring Boot · Flutter · Docker</span>
+    </h2>
+    <div style="width:60px;height:1px;background:rgba(255,255,255,0.1);margin:28px auto;"></div>
+    <p class="t-sub" style="font-size:18px;">Tools change. Frameworks die. Technologies evolve.</p>
+    <div class="slide-num">25 / 26</div>
+  </div>
+
+  <!-- SLIDE 25: Final (formerly 26) -->
+  <div class="slide text-only" id="s25">
+    <div class="glow-dot" style="width:400px;height:400px;background:#6366f1;top:-80px;left:-80px;opacity:0.2;"></div>
+    <div class="glow-dot" style="width:300px;height:300px;background:#a855f7;bottom:-60px;right:-60px;opacity:0.2;"></div>
+    <div class="bg-grid"></div>
+    <p class="t-label" style="margin-bottom:28px;">the real goal</p>
+    <h2 class="t-big" style="max-width:600px;line-height:1.4;">
+      Become someone who can<br/>
+      <span class="highlight" style="font-size:1.2em;letter-spacing:-1.5px;display:inline-block;margin-top:8px;margin-bottom:8px;">learn anything</span><br/>
+      when needed.
+    </h2>
+    <div style="margin-top:36px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <span class="pill" style="border-color:rgba(99,102,241,0.3);color:rgba(165,180,252,0.6);">Curious</span>
+      <span class="pill" style="border-color:rgba(99,102,241,0.3);color:rgba(165,180,252,0.6);">Adaptable</span>
+      <span class="pill" style="border-color:rgba(99,102,241,0.3);color:rgba(165,180,252,0.6);">Systems Thinker</span>
+    </div>
+    <div class="slide-num">26 / 26</div>
+  </div>
+
+  <!-- Nav buttons -->
+  <button class="nav-btn" id="btn-prev" onclick="navigate(-1)" aria-label="Previous slide">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+  </button>
+  <button class="nav-btn" id="btn-next" onclick="navigate(1)" aria-label="Next slide">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+  </button>
+</div>
+
+<script>
+  var slides = document.querySelectorAll('.slide');
+  var current = 0;
+  var total = slides.length;
+
+  function navigate(dir) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(total - 1, current + dir));
+    slides[current].classList.add('active');
+    
+    // Update the slide number text dynamically to account for deleted/added slides
+    var slideNumEl = slides[current].querySelector('.slide-num');
+    if (slideNumEl) {
+      var displayNum = (current + 1).toString().padStart(2, '0');
+      var displayTotal = total.toString().padStart(2, '0');
+      slideNumEl.textContent = displayNum + ' / ' + displayTotal;
+    }
+    
+    var pct = ((current + 1) / total * 100).toFixed(1);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('btn-prev').disabled = (current === 0);
+    document.getElementById('btn-next').disabled = (current === total - 1);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+  });
+
+  // Initialize
+  navigate(0);
+</script>
+</body>
+</html>
