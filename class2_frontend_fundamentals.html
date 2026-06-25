@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class 2 — Frontend Development Fundamentals</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080810;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    #pres-root {
+      font-family: 'Inter', sans-serif;
+      background: #080810;
+      color: #fff;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 48px 48px 80px 48px;
+      text-align: center;
+    }
+    .slide.active { display: flex; }
+
+    .slide-num {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 2px;
+      font-weight: 400;
+    }
+
+    .nav-btn {
+      position: absolute;
+      bottom: 24px;
+      background: rgba(255,255,255,0.06);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      z-index: 100;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .nav-btn:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+      background: rgba(255,255,255,0.02);
+      border-color: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.2);
+    }
+    .nav-btn svg { display: block; }
+    #btn-prev { left: 50%; transform: translateX(-52px); }
+    #btn-next { left: 50%; transform: translateX(8px); }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      transition: width 0.4s ease;
+      z-index: 99;
+    }
+
+    /* Typography scale */
+    .t-hero { font-size: 62px; font-weight: 800; line-height: 1.05; letter-spacing: -2px; }
+    .t-huge { font-size: 48px; font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; }
+    .t-big  { font-size: 34px; font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; }
+    .t-med  { font-size: 22px; font-weight: 400; line-height: 1.5; }
+    .t-sub  { font-size: 18px; font-weight: 300; color: rgba(255,255,255,0.5); }
+    .t-label{ font-size: 13px; letter-spacing: 3px; text-transform: uppercase; font-weight: 500; color: rgba(255,255,255,0.3); }
+
+    /* Text-only focus slides */
+    .slide.text-only .t-hero { font-size: 80px; line-height: 1.05; letter-spacing: -2.5px; }
+    .slide.text-only .t-huge { font-size: 64px; line-height: 1.1; letter-spacing: -2px; }
+    .slide.text-only .t-big  { font-size: 48px; line-height: 1.2; letter-spacing: -1px; }
+    .slide.text-only .t-med  { font-size: 28px; line-height: 1.5; }
+    .slide.text-only .t-sub  { font-size: 24px; color: rgba(255,255,255,0.6); }
+    .slide.text-only .t-label{ font-size: 15px; letter-spacing: 4px; color: rgba(255,255,255,0.4); }
+
+    .accent    { color: #818cf8; }
+    .accent2   { color: #a855f7; }
+    .accent3   { color: #34d399; }
+    .dim       { color: rgba(255,255,255,0.4); }
+    .highlight { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .pill {
+      display: inline-block;
+      border: 0.5px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 5px 16px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      margin: 4px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; width: 100%; }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: left;
+    }
+    .card-accent {
+      background: rgba(99,102,241,0.08);
+      border: 0.5px solid rgba(99,102,241,0.25);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: left;
+    }
+    .card-green {
+      background: rgba(52,211,153,0.06);
+      border: 0.5px solid rgba(52,211,153,0.2);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: left;
+    }
+
+    .tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.05);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 14px;
+      margin: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    .tag-blue  { background: rgba(99,102,241,0.1);  border-color: rgba(99,102,241,0.3);  color: #a5b4fc; }
+    .tag-green { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.25); color: #6ee7b7; }
+    .tag-red   { background: rgba(248,113,113,0.08);border-color: rgba(248,113,113,0.25);color: #fca5a5; }
+    .tag-purple{ background: rgba(168,85,247,0.1);  border-color: rgba(168,85,247,0.3);  color: #d8b4fe; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      width: 100%;
+    }
+    .split-card {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 28px;
+      text-align: left;
+    }
+
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .glow-dot {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+      opacity: 0.25;
+    }
+
+    .mono {
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Layer strip — HTML / CSS / JS visual */
+    .layer-strip {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .layer {
+      padding: 16px 24px;
+      border-radius: 0;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .layer:first-child { border-radius: 10px 10px 0 0; }
+    .layer:last-child  { border-radius: 0 0 10px 10px; }
+    .layer-js   { background: rgba(251,191,36,0.1);  border: 0.5px solid rgba(251,191,36,0.25); color: #fbbf24; }
+    .layer-css  { background: rgba(99,102,241,0.1);  border: 0.5px solid rgba(99,102,241,0.3);  color: #a5b4fc; border-top: none; }
+    .layer-html { background: rgba(248,113,113,0.08);border: 0.5px solid rgba(248,113,113,0.25);color: #fca5a5; border-top: none; }
+    .layer-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Folder tree */
+    .folder-tree {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 20px 28px;
+      text-align: left;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 2;
+      color: rgba(255,255,255,0.6);
+    }
+    .folder-tree .dir  { color: #a5b4fc; font-weight: 600; }
+    .folder-tree .file { color: rgba(255,255,255,0.55); }
+    .folder-tree .note { color: rgba(255,255,255,0.22); font-size: 12px; }
+
+    /* Comparison table */
+    .cmp-table {
+      width: 100%;
+      max-width: 620px;
+      border-collapse: collapse;
+    }
+    .cmp-table th {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      padding: 8px 16px;
+      text-align: left;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    }
+    .cmp-table th:first-child { color: rgba(255,255,255,0.15); }
+    .cmp-table td {
+      padding: 12px 16px;
+      font-size: 14px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.65);
+    }
+    .cmp-table td:first-child {
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .cmp-table td.hi { color: #a5b4fc; font-weight: 500; }
+    .cmp-table tr:last-child td { border-bottom: none; }
+
+    /* Progression ladder */
+    .ladder {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      align-items: center;
+      width: 100%;
+      max-width: 480px;
+    }
+    .ladder-item {
+      width: 100%;
+      padding: 16px 24px;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .ladder-item:first-child { border-radius: 10px 10px 0 0; }
+    .ladder-item:last-child  { border-radius: 0 0 10px 10px; }
+    .l1 { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08); }
+    .l2 { background: rgba(99,102,241,0.07);  border: 0.5px solid rgba(99,102,241,0.2);  border-top: none; }
+    .l3 { background: rgba(168,85,247,0.09);  border: 0.5px solid rgba(168,85,247,0.25); border-top: none; }
+    .ladder-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .n1 { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+    .n2 { background: rgba(99,102,241,0.25);  color: #a5b4fc; }
+    .n3 { background: rgba(168,85,247,0.25);  color: #d8b4fe; }
+
+    /* Strikethrough line */
+    .dead { color: rgba(248,113,113,0.5); text-decoration: line-through; }
+
+    /* Segment badge */
+    .seg-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .seg-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  </style>
+</head>
+<body>
+<div id="pres-root">
+  <div class="progress-bar" id="progress-bar"></div>
+
+  <!-- ===================== SLIDE 1: Title ===================== -->
+  <div class="slide active" id="s1">
+    <div class="glow-dot" style="width:320px;height:320px;background:#6366f1;top:-80px;left:-60px;"></div>
+    <div class="glow-dot" style="width:220px;height:220px;background:#a855f7;bottom:-40px;right:-40px;"></div>
+    <div class="bg-grid"></div>
+    <p class="t-label" style="margin-bottom:20px;">TMS Web Development · Class 02</p>
+    <h1 class="t-hero highlight" style="margin-bottom:20px;">Frontend<br/>Fundamentals</h1>
+    <p class="t-med dim" style="max-width:420px;">How the web actually looks the way it does.</p>
+    <div style="margin-top:40px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <span class="pill">HTML · CSS · JS</span>
+      <span class="pill">React</span>
+      <span class="pill">Next.js</span>
+    </div>
+    <div class="slide-num">01</div>
+  </div>
+
+  <!-- ===================== SLIDE 2: Segment 1 Intro ===================== -->
+  <div class="slide text-only" id="s2">
+    <div class="glow-dot" style="width:280px;height:280px;background:#6366f1;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.1;"></div>
+    <div class="seg-badge"><span class="seg-dot" style="background:#fbbf24;"></span>Part 1</div>
+    <h2 class="t-hero" style="max-width:640px;">Let's look at a<br/><span class="accent">real website.</span></h2>
+    <p class="t-sub" style="margin-top:24px;">No slides. Just a browser.</p>
+    <div class="slide-num">02</div>
+  </div>
+
+  <!-- ===================== SLIDE 3: Step 1 — Look ===================== -->
+  <div class="slide" id="s3">
+    <div class="glow-dot" style="width:200px;height:200px;background:#818cf8;top:-40px;right:40px;opacity:0.15;"></div>
+    <p class="t-label" style="margin-bottom:16px;">step 1</p>
+    <h2 class="t-huge" style="margin-bottom:12px;">Just <span class="accent">look</span> at it.</h2>
+    <p class="t-sub" style="margin-bottom:36px;font-size:16px;">Open the website. Scroll. Hover. Click around.</p>
+    <div class="grid-3" style="max-width:540px;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:26px;margin-bottom:8px;">🎨</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Colors & Layout</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:26px;margin-bottom:8px;">🖱️</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Buttons & Clicks</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:26px;margin-bottom:8px;">✨</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Animations</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:28px;font-size:14px;">Everything you see — someone wrote code for every pixel of this.</p>
+    <div class="slide-num">03</div>
+  </div>
+
+  <!-- ===================== SLIDE 4: Step 2 — DevTools ===================== -->
+  <div class="slide" id="s4">
+    <p class="t-label" style="margin-bottom:16px;">step 2</p>
+    <h2 class="t-huge" style="margin-bottom:28px;">Open <span class="accent">DevTools.</span></h2>
+    <div class="grid-2" style="max-width:560px;">
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:10px;">How to open</div>
+        <div style="font-size:15px;font-weight:500;">Right-click anywhere<br/>→ <span class="accent">Inspect</span></div>
+        <div style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.3);">or F12 / Cmd+Option+I</div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:10px;">What you'll see</div>
+        <div style="font-size:15px;font-weight:500;">The <span class="accent">HTML</span> behind everything on screen</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:28px;font-size:14px;">Click an element in the panel → watch it highlight on the page.<br/>Double-click to rename it live.</p>
+    <div class="slide-num">04</div>
+  </div>
+
+  <!-- ===================== SLIDE 5: Every element has code ===================== -->
+  <div class="slide text-only" id="s5">
+    <div class="glow-dot" style="width:300px;height:300px;background:#818cf8;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.08;"></div>
+    <h2 class="t-huge" style="max-width:640px;">Every element<br/>you see on screen<br/><span class="accent">has a line of code</span><br/>behind it.</h2>
+    <div class="slide-num">05</div>
+  </div>
+
+  <!-- ===================== SLIDE 6: Step 3 — Kill JS ===================== -->
+  <div class="slide" id="s6">
+    <div class="glow-dot" style="width:220px;height:220px;background:#f59e0b;top:-40px;left:40px;opacity:0.12;"></div>
+    <p class="t-label" style="margin-bottom:16px;">step 3</p>
+    <h2 class="t-huge" style="margin-bottom:8px;">Kill the <span style="color:#fbbf24;">JavaScript.</span></h2>
+    <p class="t-sub" style="margin-bottom:32px;font-size:15px;">DevTools → ⋮ → Settings → Preferences → Debugger → Disable JavaScript → Reload</p>
+    <div class="grid-2" style="max-width:520px;">
+      <div class="card" style="border-color:rgba(251,191,36,0.15);">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(251,191,36,0.4);margin-bottom:10px;">What breaks</div>
+        <div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,0.6);">
+          Dropdowns freeze<br/>
+          Modals won't open<br/>
+          Dynamic content gone<br/>
+          Buttons dead
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:10px;">What survives</div>
+        <div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,0.6);">
+          Text still shows<br/>
+          Images still load<br/>
+          Links still work<br/>
+          Structure intact
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">06</div>
+  </div>
+
+  <!-- ===================== SLIDE 7: JS = behavior ===================== -->
+  <div class="slide text-only" id="s7">
+    <div class="glow-dot" style="width:300px;height:300px;background:#f59e0b;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.07;"></div>
+    <h2 class="t-hero" style="color:rgba(255,255,255,0.5);margin-bottom:12px;">Without JavaScript,</h2>
+    <h2 class="t-hero" style="color:#fbbf24;">the page is dead.</h2>
+    <p class="t-sub" style="margin-top:32px;">JS is what makes a website respond to you.</p>
+    <div class="slide-num">07</div>
+  </div>
+
+  <!-- ===================== SLIDE 8: Step 4 — Kill CSS ===================== -->
+  <div class="slide" id="s8">
+    <div class="glow-dot" style="width:220px;height:220px;background:#818cf8;bottom:-40px;right:40px;opacity:0.12;"></div>
+    <p class="t-label" style="margin-bottom:16px;">step 4</p>
+    <h2 class="t-huge" style="margin-bottom:8px;">Kill the <span class="accent">CSS.</span></h2>
+    <p class="t-sub" style="margin-bottom:28px;font-size:15px;">Elements panel → find &lt;link rel="stylesheet"&gt; → delete them. Or use Web Developer extension.</p>
+    <div class="card-accent" style="max-width:480px;text-align:center;padding:28px 32px;">
+      <div style="font-size:15px;color:rgba(255,255,255,0.7);margin-bottom:16px;">Same content. Same HTML. But now it looks like...</div>
+      <div style="font-size:28px;font-weight:800;color:rgba(255,255,255,0.3);letter-spacing:-0.5px;">a 1999 document.</div>
+      <div style="margin-top:16px;font-size:13px;color:rgba(255,255,255,0.3);">No color. No layout. No fonts. Just raw text.</div>
+    </div>
+    <div class="slide-num">08</div>
+  </div>
+
+  <!-- ===================== SLIDE 9: CSS = style ===================== -->
+  <div class="slide text-only" id="s9">
+    <div class="glow-dot" style="width:300px;height:300px;background:#6366f1;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.07;"></div>
+    <h2 class="t-hero" style="color:rgba(255,255,255,0.5);margin-bottom:12px;">Without CSS,</h2>
+    <h2 class="t-hero" style="color:#818cf8;">the page is ugly.</h2>
+    <p class="t-sub" style="margin-top:32px;">CSS is what makes a website look like a website.</p>
+    <div class="slide-num">09</div>
+  </div>
+
+  <!-- ===================== SLIDE 10: The Three Layers ===================== -->
+  <div class="slide" id="s10">
+    <p class="t-label" style="margin-bottom:24px;">so here's the truth</p>
+    <h2 class="t-big" style="margin-bottom:28px;">Every website is three layers.</h2>
+    <div class="layer-strip">
+      <div class="layer layer-js">
+        <span class="layer-dot" style="background:#fbbf24;"></span>
+        <div>
+          <div style="font-size:16px;font-weight:700;">JavaScript</div>
+          <div style="font-size:12px;font-weight:400;opacity:0.6;margin-top:2px;">Behavior — what the page does</div>
+        </div>
+      </div>
+      <div class="layer layer-css">
+        <span class="layer-dot" style="background:#818cf8;"></span>
+        <div>
+          <div style="font-size:16px;font-weight:700;">CSS</div>
+          <div style="font-size:12px;font-weight:400;opacity:0.6;margin-top:2px;">Style — what the page looks like</div>
+        </div>
+      </div>
+      <div class="layer layer-html">
+        <span class="layer-dot" style="background:#fca5a5;"></span>
+        <div>
+          <div style="font-size:16px;font-weight:700;">HTML</div>
+          <div style="font-size:12px;font-weight:400;opacity:0.6;margin-top:2px;">Structure — what the page contains</div>
+        </div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:14px;">Strip them one by one. You just saw it happen.</p>
+    <div class="slide-num">10</div>
+  </div>
+
+  <!-- ===================== SLIDE 11: Segment 2 Intro ===================== -->
+  <div class="slide text-only" id="s11">
+    <div class="glow-dot" style="width:280px;height:280px;background:#a855f7;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.1;"></div>
+    <div class="seg-badge"><span class="seg-dot" style="background:#a855f7;"></span>Part 2</div>
+    <h2 class="t-hero" style="max-width:640px;">Why don't we just<br/>write HTML forever?</h2>
+    <div class="slide-num">11</div>
+  </div>
+
+  <!-- ===================== SLIDE 12: HTML/CSS/JS is fine... ===================== -->
+  <div class="slide" id="s12">
+    <div class="glow-dot" style="width:200px;height:200px;background:#34d399;top:-40px;left:40px;opacity:0.1;"></div>
+    <p class="t-label" style="margin-bottom:16px;">for small things, it's perfect</p>
+    <h2 class="t-big" style="margin-bottom:28px;">Plain HTML/CSS/JS<br/>is completely <span class="accent3">valid.</span></h2>
+    <div class="grid-2" style="max-width:520px;">
+      <div class="card-green">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(52,211,153,0.5);margin-bottom:10px;">Great for</div>
+        <div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,0.7);">
+          Portfolio pages<br/>
+          Landing pages<br/>
+          Static blogs<br/>
+          Simple forms
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:10px;">But imagine building...</div>
+        <div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,0.5);">
+          Gmail<br/>
+          Facebook<br/>
+          Figma<br/>
+          Notion
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">12</div>
+  </div>
+
+  <!-- ===================== SLIDE 13: Problem with vanilla JS ===================== -->
+  <div class="slide text-only" id="s13">
+    <div class="glow-dot" style="width:350px;height:350px;background:#ef4444;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.06;"></div>
+    <p class="t-label" style="margin-bottom:36px;">the problem</p>
+    <h2 class="t-big" style="max-width:600px;color:rgba(255,255,255,0.8);line-height:1.5;">
+      As the UI grows,<br/>
+      raw JavaScript becomes<br/>
+      <span style="color:#f87171;">impossible to manage.</span>
+    </h2>
+    <p class="t-sub" style="margin-top:28px;font-size:16px;">Messy code. Hard to reuse. Painful to work in teams.</p>
+    <div class="slide-num">13</div>
+  </div>
+
+  <!-- ===================== SLIDE 14: React ===================== -->
+  <div class="slide" id="s14">
+    <div class="glow-dot" style="width:220px;height:220px;background:#38bdf8;top:-40px;right:40px;opacity:0.1;"></div>
+    <p class="t-label" style="margin-bottom:16px;">the solution · 2013</p>
+    <h2 class="t-huge" style="margin-bottom:8px;"><span style="color:#38bdf8;">React</span></h2>
+    <p class="t-sub" style="margin-bottom:28px;font-size:15px;">Built by Facebook. Because Facebook's own UI became unmanageable.</p>
+    <div class="grid-2" style="max-width:540px;">
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:10px;">The idea</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Components</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Build small, reusable UI pieces. Use them everywhere.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:10px;">Think of it as</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Lego blocks</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">Navbar, Card, Button — each is one block you build once.</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:13px;">Runs in the browser. Built on top of HTML, CSS, and JS — not a replacement.</p>
+    <div class="slide-num">14</div>
+  </div>
+
+  <!-- ===================== SLIDE 15: React components visual ===================== -->
+  <div class="slide" id="s15">
+    <p class="t-label" style="margin-bottom:20px;">a page in react is just...</p>
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:480px;width:100%;">
+      <div class="card-accent" style="padding:16px 24px;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(99,102,241,0.5);margin-bottom:6px;">Page</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="tag tag-blue">&lt;Navbar /&gt;</span>
+          <span class="tag tag-blue">&lt;Sidebar /&gt;</span>
+          <span class="tag tag-blue">&lt;Feed /&gt;</span>
+        </div>
+      </div>
+      <div class="card" style="padding:14px 24px;margin-left:20px;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.15);margin-bottom:6px;">Feed is made of</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="tag">&lt;PostCard /&gt;</span>
+          <span class="tag">&lt;PostCard /&gt;</span>
+          <span class="tag">&lt;PostCard /&gt;</span>
+        </div>
+      </div>
+      <div class="card" style="padding:14px 24px;margin-left:40px;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.15);margin-bottom:6px;">PostCard is made of</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="tag">&lt;Avatar /&gt;</span>
+          <span class="tag">&lt;LikeButton /&gt;</span>
+          <span class="tag">&lt;CommentBox /&gt;</span>
+        </div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:20px;font-size:13px;">Components all the way down.</p>
+    <div class="slide-num">15</div>
+  </div>
+
+  <!-- ===================== SLIDE 16: React's problem ===================== -->
+  <div class="slide text-only" id="s16">
+    <div class="glow-dot" style="width:300px;height:300px;background:#ef4444;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.06;"></div>
+    <p class="t-label" style="margin-bottom:36px;">but React has a problem</p>
+    <h2 class="t-big" style="max-width:580px;color:rgba(255,255,255,0.8);line-height:1.6;">
+      Everything renders<br/>in the <span style="color:#f87171;">browser.</span><br/>
+      <span style="font-size:0.7em;color:rgba(255,255,255,0.4);">Slow first load. Bad SEO.</span>
+    </h2>
+    <div class="slide-num">16</div>
+  </div>
+
+  <!-- ===================== SLIDE 17: Next.js ===================== -->
+  <div class="slide" id="s17">
+    <div class="glow-dot" style="width:220px;height:220px;background:#ffffff;top:-40px;left:40px;opacity:0.05;"></div>
+    <p class="t-label" style="margin-bottom:16px;">the solution to React's problem</p>
+    <h2 class="t-huge" style="margin-bottom:8px;">Next.js</h2>
+    <p class="t-sub" style="margin-bottom:28px;font-size:15px;">Wraps React. Adds the missing pieces.</p>
+    <div class="grid-3" style="max-width:540px;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:20px;margin-bottom:8px;">⚡</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Server Rendering</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);">Page built on server, not browser</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:20px;margin-bottom:8px;">📁</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">File Routing</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);">Folders = pages. No config.</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:20px;margin-bottom:8px;">🔍</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">SEO Ready</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);">Google can read your content</div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:14px;">React is the engine. Next.js is the full car.</p>
+    <div class="slide-num">17</div>
+  </div>
+
+  <!-- ===================== SLIDE 18: The Progression ===================== -->
+  <div class="slide" id="s18">
+    <p class="t-label" style="margin-bottom:24px;">the progression</p>
+    <div class="ladder">
+      <div class="ladder-item l3">
+        <span class="ladder-num n3">3</span>
+        <div style="text-align:left;">
+          <div style="font-size:15px;font-weight:700;color:#d8b4fe;">Next.js</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">Production apps · SEO · Server rendering · Routing</div>
+        </div>
+      </div>
+      <div class="ladder-item l2">
+        <span class="ladder-num n2">2</span>
+        <div style="text-align:left;">
+          <div style="font-size:15px;font-weight:700;color:#a5b4fc;">React</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">Complex UIs · Components · Interactive apps</div>
+        </div>
+      </div>
+      <div class="ladder-item l1">
+        <span class="ladder-num n1">1</span>
+        <div style="text-align:left;">
+          <div style="font-size:15px;font-weight:700;color:rgba(255,255,255,0.7);">HTML / CSS / JS</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">Simple pages · The foundation everything is built on</div>
+        </div>
+      </div>
+    </div>
+    <p class="t-sub" style="margin-top:24px;font-size:13px;">You don't upgrade because the old one is bad.<br/>You upgrade because your needs grew.</p>
+    <div class="slide-num">18</div>
+  </div>
+
+  <!-- ===================== SLIDE 19: Segment 3 Intro ===================== -->
+  <div class="slide text-only" id="s19">
+    <div class="glow-dot" style="width:280px;height:280px;background:#34d399;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.08;"></div>
+    <div class="seg-badge"><span class="seg-dot" style="background:#34d399;"></span>Part 3</div>
+    <h2 class="t-hero" style="max-width:640px;">How do you<br/><span class="accent3">actually start</span><br/>one of these?</h2>
+    <div class="slide-num">19</div>
+  </div>
+
+  <!-- ===================== SLIDE 20: Plain HTML setup ===================== -->
+  <div class="slide" id="s20">
+    <div class="glow-dot" style="width:200px;height:200px;background:#fca5a5;top:-40px;right:40px;opacity:0.1;"></div>
+    <p class="t-label" style="margin-bottom:16px;">option 1 · simplest possible</p>
+    <h2 class="t-big" style="margin-bottom:24px;color:rgba(255,255,255,0.8);">Plain <span style="color:#fca5a5;">HTML / CSS / JS</span></h2>
+    <div class="folder-tree" style="max-width:340px;margin-bottom:20px;">
+      <div><span class="dir">project/</span></div>
+      <div style="padding-left:20px;"><span class="file">├── index.html</span></div>
+      <div style="padding-left:20px;"><span class="file">├── style.css</span></div>
+      <div style="padding-left:20px;"><span class="file">└── script.js</span></div>
+    </div>
+    <div class="grid-2" style="max-width:500px;">
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:8px;">To start</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.7);">Create files.<br/>Open index.html in browser.</div>
+      </div>
+      <div class="card-green">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(52,211,153,0.4);margin-bottom:8px;">No install</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.7);">No terminal.<br/>No setup. Just files.</div>
+      </div>
+    </div>
+    <div class="slide-num">20</div>
+  </div>
+
+  <!-- ===================== SLIDE 21: React setup ===================== -->
+  <div class="slide" id="s21">
+    <div class="glow-dot" style="width:200px;height:200px;background:#38bdf8;top:-40px;left:40px;opacity:0.1;"></div>
+    <p class="t-label" style="margin-bottom:16px;">option 2 · react with vite</p>
+    <h2 class="t-big" style="margin-bottom:24px;color:#38bdf8;">React</h2>
+    <div style="display:flex;gap:20px;align-items:flex-start;justify-content:center;width:100%;max-width:600px;">
+      <div class="folder-tree" style="flex:1;">
+        <div><span class="dir">my-app/</span></div>
+        <div style="padding-left:20px;"><span class="dir">├── src/</span></div>
+        <div style="padding-left:40px;"><span class="file">│   ├── App.jsx</span></div>
+        <div style="padding-left:40px;"><span class="file">│   └── main.jsx</span></div>
+        <div style="padding-left:20px;"><span class="file">├── index.html</span></div>
+        <div style="padding-left:20px;"><span class="file">├── package.json</span></div>
+        <div style="padding-left:20px;"><span class="file">└── vite.config.js</span></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+        <div class="card" style="padding:14px 18px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:6px;">Initialize</div>
+          <div class="mono" style="font-size:13px;color:#a5b4fc;">npm create vite@latest</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;">→ choose React</div>
+        </div>
+        <div class="card" style="padding:14px 18px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:6px;">Run</div>
+          <div class="mono" style="font-size:13px;color:#6ee7b7;">npm install<br/>npm run dev</div>
+        </div>
+        <div class="card-accent" style="padding:12px 18px;text-align:center;">
+          <div class="mono" style="font-size:13px;color:#a5b4fc;">localhost:5173</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">21</div>
+  </div>
+
+  <!-- ===================== SLIDE 22: Next.js setup ===================== -->
+  <div class="slide" id="s22">
+    <div class="glow-dot" style="width:200px;height:200px;background:#d8b4fe;top:-40px;right:40px;opacity:0.1;"></div>
+    <p class="t-label" style="margin-bottom:16px;">option 3 · next.js</p>
+    <h2 class="t-big" style="margin-bottom:24px;">Next.js</h2>
+    <div style="display:flex;gap:20px;align-items:flex-start;justify-content:center;width:100%;max-width:620px;">
+      <div class="folder-tree" style="flex:1;">
+        <div><span class="dir">my-app/</span></div>
+        <div style="padding-left:20px;"><span class="dir">├── app/</span></div>
+        <div style="padding-left:40px;"><span class="file">│   ├── page.jsx</span> <span class="note">← /</span></div>
+        <div style="padding-left:40px;"><span class="dir">│   ├── about/</span></div>
+        <div style="padding-left:60px;"><span class="file">│   │   └── page.jsx</span> <span class="note">← /about</span></div>
+        <div style="padding-left:40px;"><span class="file">│   └── layout.jsx</span></div>
+        <div style="padding-left:20px;"><span class="dir">├── public/</span></div>
+        <div style="padding-left:20px;"><span class="file">├── package.json</span></div>
+        <div style="padding-left:20px;"><span class="file">└── next.config.js</span></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+        <div class="card" style="padding:14px 18px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:6px;">Initialize</div>
+          <div class="mono" style="font-size:13px;color:#d8b4fe;">npx create-next-app@latest</div>
+        </div>
+        <div class="card" style="padding:14px 18px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:6px;">Run</div>
+          <div class="mono" style="font-size:13px;color:#6ee7b7;">npm run dev</div>
+        </div>
+        <div class="card-accent" style="padding:12px 18px;text-align:center;">
+          <div class="mono" style="font-size:13px;color:#a5b4fc;">localhost:3000</div>
+        </div>
+        <div class="card" style="padding:12px 18px;">
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);">📁 Folders = Routes<br/>No routing config needed.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">22</div>
+  </div>
+
+  <!-- ===================== SLIDE 23: Comparison table ===================== -->
+  <div class="slide" id="s23">
+    <p class="t-label" style="margin-bottom:28px;">side by side</p>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>HTML/CSS/JS</th>
+          <th>React</th>
+          <th>Next.js</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Setup</td>
+          <td>Just files</td>
+          <td>Node + Vite</td>
+          <td class="hi">Node + CLI</td>
+        </tr>
+        <tr>
+          <td>Runs on</td>
+          <td>Open file</td>
+          <td>:5173</td>
+          <td class="hi">:3000</td>
+        </tr>
+        <tr>
+          <td>Routing</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td class="hi">Folder-based</td>
+        </tr>
+        <tr>
+          <td>Rendering</td>
+          <td>Browser</td>
+          <td>Browser</td>
+          <td class="hi">Server + Browser</td>
+        </tr>
+        <tr>
+          <td>Best for</td>
+          <td>Static pages</td>
+          <td>Complex UIs</td>
+          <td class="hi">Production apps</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="slide-num">23</div>
+  </div>
+
+  <!-- ===================== SLIDE 24: The key mindset ===================== -->
+  <div class="slide text-only" id="s24">
+    <div class="glow-dot" style="width:350px;height:350px;background:#6366f1;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.08;"></div>
+    <p class="t-label" style="margin-bottom:36px;">the real takeaway</p>
+    <h2 class="t-big" style="max-width:600px;color:rgba(255,255,255,0.8);line-height:1.5;">
+      The setup is the<br/><span class="dim">easy part.</span>
+    </h2>
+    <div style="width:60px;height:1px;background:rgba(255,255,255,0.1);margin:28px auto;"></div>
+    <p class="t-sub" style="font-size:18px;max-width:500px;">Understanding <em>what</em> you're looking at<br/>and <em>why</em> it's structured that way —<br/><span style="color:rgba(255,255,255,0.7);font-weight:500;">that's the valuable part.</span></p>
+    <div class="slide-num">24</div>
+  </div>
+
+  <!-- ===================== SLIDE 25: Final ===================== -->
+  <div class="slide text-only" id="s25">
+    <div class="glow-dot" style="width:400px;height:400px;background:#6366f1;top:-80px;left:-80px;opacity:0.2;"></div>
+    <div class="glow-dot" style="width:300px;height:300px;background:#a855f7;bottom:-60px;right:-60px;opacity:0.2;"></div>
+    <div class="bg-grid"></div>
+    <p class="t-label" style="margin-bottom:28px;">next class</p>
+    <h2 class="t-big" style="max-width:600px;line-height:1.5;">
+      You understood the frontend.<br/>
+      <span class="highlight" style="font-size:1.2em;letter-spacing:-1.5px;display:inline-block;margin-top:8px;margin-bottom:8px;">Now you build it.</span>
+    </h2>
+    <div style="margin-top:36px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <span class="pill" style="border-color:rgba(99,102,241,0.3);color:rgba(165,180,252,0.6);">Before next class</span>
+      <span class="pill" style="border-color:rgba(99,102,241,0.3);color:rgba(165,180,252,0.6);">Inspect 2–3 websites you use daily</span>
+    </div>
+    <div class="slide-num">25</div>
+  </div>
+
+  <!-- Nav buttons -->
+  <button class="nav-btn" id="btn-prev" onclick="navigate(-1)" aria-label="Previous slide">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+  </button>
+  <button class="nav-btn" id="btn-next" onclick="navigate(1)" aria-label="Next slide">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+  </button>
+</div>
+
+<script>
+  var slides = document.querySelectorAll('.slide');
+  var current = 0;
+  var total = slides.length;
+
+  function navigate(dir) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(total - 1, current + dir));
+    slides[current].classList.add('active');
+
+    var pct = ((current + 1) / total * 100).toFixed(1);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('btn-prev').disabled = (current === 0);
+    document.getElementById('btn-next').disabled = (current === total - 1);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+  });
+
+  // Initialize
+  navigate(0);
+</script>
+</body>
+</html>
